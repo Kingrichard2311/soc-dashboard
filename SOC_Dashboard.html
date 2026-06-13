@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SecureOps SOC Platform</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#06101f;
+  --bg2:#0b1a2e;
+  --bg3:#0f2040;
+  --border:#1a3354;
+  --accent:#00c8f0;
+  --accent2:#0084a6;
+  --text:#d4e8f8;
+  --muted:#6a94bb;
+  --critical:#f0485a;
+  --high:#f59e0b;
+  --medium:#3b82f6;
+  --low:#22c55e;
+  --font:'Segoe UI',system-ui,sans-serif;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:14px}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100}
+.sidebar-logo{padding:20px 16px 12px;border-bottom:1px solid var(--border)}
+.sidebar-logo .logo-mark{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);font-weight:600}
+.sidebar-logo h1{font-size:18px;font-weight:700;color:#fff;margin-top:2px}
+.sidebar-logo small{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.nav-section{padding:12px 0}
+.nav-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:6px 16px 4px;font-weight:600}
+.nav a{display:flex;align-items:center;gap:10px;padding:9px 16px;color:var(--muted);text-decoration:none;cursor:pointer;font-size:13px;transition:all .15s;border-left:2px solid transparent}
+.nav a:hover{color:var(--text);background:rgba(0,200,240,.05)}
+.nav a.active{color:var(--accent);background:rgba(0,200,240,.08);border-left-color:var(--accent)}
+.nav a i{font-size:16px;width:18px;text-align:center}
+.sidebar-footer{margin-top:auto;padding:16px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
+.status-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;margin-right:6px;box-shadow:0 0 6px #22c55e}
+
+/* MAIN */
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar-left{display:flex;align-items:center;gap:8px}
+.topbar h2{font-size:15px;font-weight:600;color:#fff}
+.breadcrumb{font-size:12px;color:var(--muted)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-badge{background:rgba(240,72,90,.15);color:#f0485a;border:1px solid rgba(240,72,90,.3);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.time-display{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.page{display:none;padding:24px;flex:1}
+.page.active{display:block}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.stat-card.c-critical::before{background:var(--critical)}
+.stat-card.c-high::before{background:var(--high)}
+.stat-card.c-open::before{background:var(--accent)}
+.stat-card.c-vuln::before{background:#a855f7}
+.stat-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:600;margin-bottom:8px}
+.stat-value{font-size:32px;font-weight:700;color:#fff;line-height:1;margin-bottom:4px}
+.stat-sub{font-size:11px;color:var(--muted)}
+
+/* SECTION HEADERS */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.section-title{font-size:15px;font-weight:600;color:#fff;display:flex;align-items:center;gap:8px}
+.section-title i{color:var(--accent);font-size:16px}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px}
+.card-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-body{padding:18px}
+
+/* TABLES */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);background:rgba(0,0,0,.2)}
+.data-table td{padding:11px 14px;border-bottom:1px solid rgba(26,51,84,.5);font-size:13px;vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:rgba(0,200,240,.03)}
+.data-table tbody tr{cursor:pointer;transition:background .1s}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.3px}
+.badge-critical{background:rgba(240,72,90,.15);color:#f0485a;border:1px solid rgba(240,72,90,.3)}
+.badge-high{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.3)}
+.badge-medium{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.3)}
+.badge-low{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)}
+.badge-open{background:rgba(240,72,90,.12);color:#f0485a;border:1px solid rgba(240,72,90,.25)}
+.badge-investigating{background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.25)}
+.badge-resolved{background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25)}
+.badge-closed{background:rgba(107,114,128,.15);color:#9ca3af;border:1px solid rgba(107,114,128,.3)}
+.badge-info{background:rgba(0,200,240,.12);color:var(--accent);border:1px solid rgba(0,200,240,.25)}
+.badge-purple{background:rgba(168,85,247,.12);color:#c084fc;border:1px solid rgba(168,85,247,.25)}
+.badge-remediated{background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25)}
+.badge-inprogress{background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.25)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:var(--font)}
+.btn-primary{background:var(--accent);color:#000}
+.btn-primary:hover{background:#00b8e0}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--text);border-color:rgba(0,200,240,.3)}
+.btn-danger{background:rgba(240,72,90,.15);color:#f0485a;border:1px solid rgba(240,72,90,.3)}
+.btn-danger:hover{background:rgba(240,72,90,.25)}
+.btn-sm{padding:5px 11px;font-size:12px}
+
+/* FORMS */
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.form-control{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:9px 12px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border-color .15s}
+.form-control:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,200,240,.1)}
+.form-control::placeholder{color:rgba(106,148,187,.5)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+select.form-control option{background:#0b1a2e}
+textarea.form-control{resize:vertical;min-height:90px}
+
+/* MODAL OVERLAY */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:12px;width:600px;max-width:95vw;max-height:85vh;overflow-y:auto}
+.modal-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:15px;font-weight:600;color:#fff}
+.modal-body{padding:20px}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+.close-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1;padding:0}
+.close-btn:hover{color:#fff}
+
+/* THREAT INTEL */
+.ioc-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:14px}
+.ioc-icon{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.ioc-icon.ip{background:rgba(240,72,90,.15);color:#f0485a}
+.ioc-icon.domain{background:rgba(245,158,11,.15);color:#f59e0b}
+.ioc-icon.hash{background:rgba(168,85,247,.15);color:#c084fc}
+.ioc-icon.url{background:rgba(59,130,246,.15);color:#60a5fa}
+.ioc-value{font-family:monospace;font-size:13px;color:var(--text);margin-bottom:2px}
+.ioc-meta{font-size:11px;color:var(--muted)}
+.ioc-actions{margin-left:auto;display:flex;gap:6px}
+.confidence-bar{width:100%;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-top:4px}
+.confidence-fill{height:100%;border-radius:2px}
+
+/* MITRE */
+.mitre-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:20px}
+.tactic-col{background:var(--bg3);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.tactic-header{padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;background:rgba(0,200,240,.08);color:var(--accent);border-bottom:1px solid var(--border);text-align:center}
+.technique-btn{display:block;width:100%;text-align:left;padding:6px 10px;background:none;border:none;border-bottom:1px solid rgba(26,51,84,.4);color:var(--text);font-size:11px;cursor:pointer;transition:background .1s;font-family:var(--font)}
+.technique-btn:hover{background:rgba(0,200,240,.08);color:var(--accent)}
+.technique-btn:last-child{border-bottom:none}
+.technique-btn .tid{font-size:10px;color:var(--muted);display:block}
+.technique-btn.used{background:rgba(240,72,90,.08);border-left:2px solid #f0485a}
+.technique-detail{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:20px;margin-top:16px}
+.technique-detail h3{font-size:16px;font-weight:600;color:#fff;margin-bottom:8px}
+
+/* VULN */
+.cvss-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:4px}
+.cvss-fill{height:100%;border-radius:3px}
+
+/* TIMELINE */
+.timeline{padding-left:16px;border-left:2px solid var(--border)}
+.timeline-item{position:relative;padding:0 0 16px 20px;margin-left:0}
+.timeline-item::before{content:'';position:absolute;left:-5px;top:5px;width:8px;height:8px;border-radius:50%;background:var(--accent);border:2px solid var(--bg2)}
+.timeline-time{font-size:11px;color:var(--muted);margin-bottom:2px}
+.timeline-text{font-size:13px;color:var(--text)}
+
+/* PROGRESS */
+.progress{height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;background:var(--accent)}
+
+/* CHART BARS */
+.mini-chart{display:flex;align-items:flex-end;gap:4px;height:50px}
+.mini-bar{flex:1;border-radius:3px 3px 0 0;min-width:8px;transition:opacity .15s}
+.mini-bar:hover{opacity:.8}
+
+/* SEARCH BAR */
+.search-bar{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:8px 12px;margin-bottom:16px}
+.search-bar i{color:var(--muted);font-size:15px}
+.search-bar input{background:none;border:none;color:var(--text);font-size:13px;flex:1;outline:none;font-family:var(--font)}
+.search-bar input::placeholder{color:rgba(106,148,187,.5)}
+
+/* AUDIT */
+.audit-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid rgba(26,51,84,.4)}
+.audit-item:last-child{border-bottom:none}
+.audit-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:1px}
+
+/* ALERT BANNER */
+.alert{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px}
+.alert-critical{background:rgba(240,72,90,.1);border:1px solid rgba(240,72,90,.3);color:#f0485a}
+.alert-info{background:rgba(0,200,240,.08);border:1px solid rgba(0,200,240,.2);color:var(--accent)}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:50px 20px;color:var(--muted)}
+.empty-state i{font-size:40px;margin-bottom:12px;opacity:.4}
+.empty-state p{font-size:14px}
+
+/* SPLUNK-STYLE LOG STREAM */
+.splunk-bar{background:#0a1525;border:1px solid var(--border);border-radius:7px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:14px;font-family:'Consolas','Monaco',monospace}
+.splunk-bar i{color:var(--accent)}
+.splunk-bar .spl-query{flex:1;color:#22c55e;font-size:13px;overflow-x:auto;white-space:nowrap}
+.splunk-bar .spl-query .spl-kw{color:#f59e0b}
+.splunk-bar .spl-query .spl-val{color:#60a5fa}
+.log-console{background:#04090f;border:1px solid var(--border);border-radius:8px;font-family:'Consolas','Monaco',monospace;font-size:12px;max-height:340px;overflow-y:auto}
+.log-line{display:flex;gap:10px;padding:7px 14px;border-bottom:1px solid rgba(26,51,84,.3);align-items:flex-start;cursor:pointer;transition:background .1s}
+.log-line:hover{background:rgba(0,200,240,.04)}
+.log-line:last-child{border-bottom:none}
+.log-line.new{animation:logIn .5s ease}
+@keyframes logIn{from{opacity:0;background:rgba(0,200,240,.15);transform:translateY(-4px)}to{opacity:1}}
+.log-ts{color:#5a7a9a;flex-shrink:0;width:165px}
+.log-host{color:#c084fc;flex-shrink:0;width:90px;overflow:hidden;text-overflow:ellipsis}
+.log-evt{color:#f59e0b;flex-shrink:0;width:130px}
+.log-msg{color:#9fd3ec;flex:1}
+.log-msg .hl{color:#f0485a;font-weight:700}
+.log-tag{flex-shrink:0;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700}
+.log-tag.match{background:rgba(240,72,90,.18);color:#f0485a;border:1px solid rgba(240,72,90,.35)}
+
+/* PIPELINE */
+.pipeline{display:flex;align-items:stretch;gap:0;margin:10px 0 22px;overflow-x:auto}
+.pipe-stage{flex:1;min-width:160px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:14px;text-align:center;position:relative;transition:all .25s}
+.pipe-stage i{font-size:22px;color:var(--muted);margin-bottom:8px;display:block;transition:color .25s}
+.pipe-stage .pipe-title{font-size:12px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.pipe-stage .pipe-sub{font-size:11px;color:var(--muted);min-height:28px}
+.pipe-arrow{flex:0 0 34px;display:flex;align-items:center;justify-content:center;color:var(--border);font-size:18px;transition:color .25s}
+.pipe-stage.lit{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 16px rgba(0,200,240,.25);background:rgba(0,200,240,.06)}
+.pipe-stage.lit i{color:var(--accent)}
+.pipe-stage.done{border-color:rgba(34,197,94,.4)}
+.pipe-stage.done i{color:#22c55e}
+.pipe-arrow.lit{color:var(--accent)}
+.pipe-stage .pipe-pulse{position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);display:none}
+.pipe-stage.lit .pipe-pulse{display:block;animation:pulseDot 1s infinite}
+@keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* DETAIL PANEL */
+.detail-panel{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:18px}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(26,51,84,.4);font-size:13px}
+.detail-row:last-child{border-bottom:none}
+.detail-key{color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">SOC Platform</div>
+    <h1>SecureOps</h1>
+    <small>v3.1.0 — Enterprise</small>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Overview</div>
+    <div class="nav">
+      <a class="nav-link active" data-page="dashboard"><i class="ti ti-layout-dashboard"></i>Dashboard</a>
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Operations</div>
+    <div class="nav">
+      <a class="nav-link" data-page="incidents"><i class="ti ti-alert-triangle"></i>Incidents</a>
+      <a class="nav-link" data-page="logincident"><i class="ti ti-plus"></i>Log Incident</a>
+      <a class="nav-link" data-page="threatintel"><i class="ti ti-radar"></i>Threat Intel</a>
+      <a class="nav-link" data-page="pipeline"><i class="ti ti-terminal-2"></i>Detection Pipeline</a>
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Analysis</div>
+    <div class="nav">
+      <a class="nav-link" data-page="mitre"><i class="ti ti-sitemap"></i>MITRE ATT&CK</a>
+      <a class="nav-link" data-page="vuln"><i class="ti ti-shield-exclamation"></i>Vulnerabilities</a>
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Reporting</div>
+    <div class="nav">
+      <a class="nav-link" data-page="reports"><i class="ti ti-file-analytics"></i>Reports</a>
+      <a class="nav-link" data-page="audit"><i class="ti ti-history"></i>Audit Log</a>
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div><span class="status-dot"></span>All systems operational</div>
+    <div style="margin-top:4px;font-size:10px">Analyst: SOC Team Alpha</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <i class="ti ti-shield" style="color:var(--accent);font-size:18px"></i>
+      <h2 id="page-title">Dashboard</h2>
+      <span class="breadcrumb" id="page-breadcrumb">/ Overview</span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-badge"><i class="ti ti-bell" style="font-size:11px"></i> <span id="alert-count">2</span> Alerts</span>
+      <span class="time-display" id="live-time"></span>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="page active">
+    <div class="alert alert-critical">
+      <i class="ti ti-alert-octagon"></i>
+      <strong>Active Threat:</strong>&nbsp;Ransomware behaviour detected on SRV-07. Incident INC-002 is under investigation.
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card c-critical">
+        <div class="stat-label">Total Incidents</div>
+        <div class="stat-value" id="totalInc">0</div>
+        <div class="stat-sub">All time</div>
+      </div>
+      <div class="stat-card c-high">
+        <div class="stat-label">Critical</div>
+        <div class="stat-value" id="criticalInc">0</div>
+        <div class="stat-sub">Require immediate action</div>
+      </div>
+      <div class="stat-card c-open">
+        <div class="stat-label">Open</div>
+        <div class="stat-value" id="openInc">0</div>
+        <div class="stat-sub">Active investigations</div>
+      </div>
+      <div class="stat-card c-vuln">
+        <div class="stat-label">Vulnerabilities</div>
+        <div class="stat-value" id="vulnCount">3</div>
+        <div class="stat-sub">1 critical CVSS ≥ 9</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card">
+        <div class="card-header">
+          <span class="section-title"><i class="ti ti-clock-hour-4"></i>Recent Incidents</span>
+          <a class="nav-link" data-page="incidents" style="font-size:12px;color:var(--accent);cursor:pointer;text-decoration:none">View all →</a>
+        </div>
+        <div class="card-body" style="padding:0" id="recent-incidents-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="section-title"><i class="ti ti-chart-bar"></i>Incidents by Severity</span>
+        </div>
+        <div class="card-body">
+          <div id="severity-chart" style="margin-bottom:12px"></div>
+          <div id="severity-legend" style="display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--muted)"></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card">
+        <div class="card-header"><span class="section-title"><i class="ti ti-radar"></i>Active IOCs</span></div>
+        <div class="card-body">
+          <div class="ioc-card" style="margin-bottom:8px">
+            <div class="ioc-icon ip"><i class="ti ti-network"></i></div>
+            <div style="flex:1">
+              <div class="ioc-value">185.220.101.4</div>
+              <div class="ioc-meta">C2 IP — Critical confidence</div>
+              <div class="confidence-bar"><div class="confidence-fill" style="width:95%;background:#f0485a"></div></div>
+            </div>
+          </div>
+          <div class="ioc-card" style="margin-bottom:8px">
+            <div class="ioc-icon domain"><i class="ti ti-world"></i></div>
+            <div style="flex:1">
+              <div class="ioc-value">update-service.ru</div>
+              <div class="ioc-meta">Malicious domain — High confidence</div>
+              <div class="confidence-bar"><div class="confidence-fill" style="width:78%;background:#f59e0b"></div></div>
+            </div>
+          </div>
+          <div class="ioc-card">
+            <div class="ioc-icon hash"><i class="ti ti-fingerprint"></i></div>
+            <div style="flex:1">
+              <div class="ioc-value">Qakbot SHA256</div>
+              <div class="ioc-meta">Malware hash — High confidence</div>
+              <div class="confidence-bar"><div class="confidence-fill" style="width:82%;background:#c084fc"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="section-title"><i class="ti ti-activity"></i>SOC Activity (7d)</span></div>
+        <div class="card-body">
+          <div class="mini-chart" id="activity-chart"></div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--muted)">
+            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+          </div>
+          <div style="margin-top:16px">
+            <div class="detail-row"><span class="detail-key">MTTD</span><span style="font-size:13px;color:#fff">4.2 hrs</span></div>
+            <div class="detail-row"><span class="detail-key">MTTR</span><span style="font-size:13px;color:#fff">11.8 hrs</span></div>
+            <div class="detail-row"><span class="detail-key">False Positive Rate</span><span style="font-size:13px;color:#22c55e">8%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INCIDENTS -->
+  <div id="incidents" class="page">
+    <div class="search-bar">
+      <i class="ti ti-search"></i>
+      <input type="text" id="incident-search" placeholder="Search incidents by title, ID, asset...">
+    </div>
+    <div class="section-header">
+      <div style="display:flex;gap:8px;flex-wrap:wrap" id="filter-buttons">
+        <button class="btn btn-ghost btn-sm filter-btn active" data-filter="all">All</button>
+        <button class="btn btn-ghost btn-sm filter-btn" data-filter="Critical">Critical</button>
+        <button class="btn btn-ghost btn-sm filter-btn" data-filter="High">High</button>
+        <button class="btn btn-ghost btn-sm filter-btn" data-filter="Open">Open</button>
+        <button class="btn btn-ghost btn-sm filter-btn" data-filter="Resolved">Resolved</button>
+      </div>
+      <button class="btn btn-primary btn-sm nav-link" data-page="logincident"><i class="ti ti-plus"></i>New Incident</button>
+    </div>
+    <div class="card">
+      <table class="data-table" id="incidentTable">
+        <thead>
+          <tr>
+            <th>ID</th><th>Title</th><th>Severity</th><th>Status</th><th>Asset</th><th>MITRE</th><th>Created</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="incidentTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- LOG INCIDENT -->
+  <div id="logincident" class="page">
+    <div style="max-width:700px">
+      <div class="alert alert-info">
+        <i class="ti ti-info-circle"></i>
+        Fill in all required fields. Incidents are logged to the audit trail automatically.
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="section-title"><i class="ti ti-plus"></i>New Incident Report</span>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Incident Title *</label>
+              <input id="inc-title" class="form-control" placeholder="e.g. Suspicious PowerShell execution on WKS-14">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Severity *</label>
+              <select id="inc-severity" class="form-control">
+                <option value="Critical">🔴 Critical</option>
+                <option value="High">🟠 High</option>
+                <option value="Medium" selected>🔵 Medium</option>
+                <option value="Low">🟢 Low</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Affected Asset *</label>
+              <input id="inc-asset" class="form-control" placeholder="e.g. SRV-01, WEB-02, workstation name">
+            </div>
+            <div class="form-group">
+              <label class="form-label">MITRE Technique</label>
+              <input id="inc-mitre" class="form-control" placeholder="e.g. T1566.001">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Analyst Assigned</label>
+              <input id="inc-analyst" class="form-control" placeholder="e.g. J. Smith">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <select id="inc-category" class="form-control">
+                <option>Malware</option>
+                <option>Phishing</option>
+                <option>Ransomware</option>
+                <option>Insider Threat</option>
+                <option>Data Exfiltration</option>
+                <option>Credential Theft</option>
+                <option>DDoS</option>
+                <option>Unauthorised Access</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description *</label>
+            <textarea id="inc-desc" class="form-control" placeholder="Describe what was observed, when it was detected, initial impact assessment, affected users/systems..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Initial IOCs (one per line)</label>
+            <textarea id="inc-iocs" class="form-control" style="min-height:60px" placeholder="IP addresses, domains, hashes, email addresses..."></textarea>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:8px">
+            <button class="btn btn-primary" onclick="createIncident()"><i class="ti ti-check"></i>Create Incident</button>
+            <button class="btn btn-ghost" onclick="clearForm()"><i class="ti ti-x"></i>Clear</button>
+          </div>
+          <div id="form-success" style="display:none" class="alert alert-info" style="margin-top:12px">
+            <i class="ti ti-check"></i> Incident created successfully.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THREAT INTEL -->
+  <div id="threatintel" class="page">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div class="stat-card c-critical">
+        <div class="stat-label">Total IOCs</div>
+        <div class="stat-value" id="ioc-total">7</div>
+        <div class="stat-sub">Tracked indicators</div>
+      </div>
+      <div class="stat-card c-high">
+        <div class="stat-label">Critical Confidence</div>
+        <div class="stat-value">2</div>
+        <div class="stat-sub">Require immediate action</div>
+      </div>
+    </div>
+    <div class="section-header">
+      <span class="section-title"><i class="ti ti-radar"></i>Indicators of Compromise</span>
+      <button class="btn btn-primary btn-sm" onclick="openAddIOC()"><i class="ti ti-plus"></i>Add IOC</button>
+    </div>
+    <div id="ioc-list"></div>
+
+    <div class="section-header" style="margin-top:24px">
+      <span class="section-title"><i class="ti ti-bolt"></i>Threat Feeds</span>
+    </div>
+    <div class="card">
+      <table class="data-table">
+        <thead><tr><th>Feed</th><th>Status</th><th>Last Updated</th><th>IOCs Ingested</th></tr></thead>
+        <tbody>
+          <tr><td>AlienVault OTX</td><td><span class="badge badge-low">Active</span></td><td>2 min ago</td><td>1,482</td></tr>
+          <tr><td>MISP Community</td><td><span class="badge badge-low">Active</span></td><td>15 min ago</td><td>3,201</td></tr>
+          <tr><td>Recorded Future</td><td><span class="badge badge-low">Active</span></td><td>1 hr ago</td><td>876</td></tr>
+          <tr><td>VirusTotal Feed</td><td><span class="badge badge-investigating">Delayed</span></td><td>4 hrs ago</td><td>523</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- DETECTION PIPELINE -->
+  <div id="pipeline" class="page">
+    <div class="alert alert-info">
+      <i class="ti ti-info-circle"></i>
+      Live SIEM-style ingestion view. Raw Windows Event Logs are matched against detection rules, auto-creating incidents mapped to MITRE ATT&CK for analyst triage.
+    </div>
+
+    <div class="section-title" style="margin-bottom:10px"><i class="ti ti-route"></i>Detection-to-Response Pipeline</div>
+    <div class="pipeline" id="pipeline-stages"></div>
+
+    <div class="splunk-bar">
+      <i class="ti ti-search"></i>
+      <div class="spl-query">index=<span class="spl-val">windows_security</span> <span class="spl-kw">EventCode</span>=<span class="spl-val">4625 OR 4688 OR 4672 OR 1102</span> | <span class="spl-kw">stats</span> count <span class="spl-kw">by</span> Host, EventCode | <span class="spl-kw">eval</span> rule=<span class="spl-val">"detect_*"</span></div>
+      <span class="badge badge-low" style="flex-shrink:0"><i class="ti ti-bolt" style="font-size:10px"></i> Live</span>
+    </div>
+
+    <div class="section-header">
+      <span class="section-title"><i class="ti ti-brand-windows"></i>Windows Event Log Stream</span>
+      <div style="display:flex;gap:8px">
+        <span id="log-rate" style="font-size:11px;color:var(--muted);align-self:center">events/min: <strong style="color:#fff">—</strong></span>
+        <button class="btn btn-primary btn-sm" onclick="simulatePipeline()"><i class="ti ti-player-play"></i>Simulate Detection</button>
+      </div>
+    </div>
+    <div class="log-console" id="log-console"></div>
+
+    <div class="section-header" style="margin-top:20px">
+      <span class="section-title"><i class="ti ti-list-check"></i>Active Detection Rules</span>
+    </div>
+    <div class="card">
+      <table class="data-table">
+        <thead><tr><th>Rule Name</th><th>Source</th><th>Event Codes</th><th>MITRE</th><th>Severity</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Brute Force — Repeated 4625</td><td>Windows Security</td><td><code>4625</code></td><td><span class="badge badge-purple">T1110</span></td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-low">Enabled</span></td></tr>
+          <tr><td>Suspicious PowerShell EncodedCommand</td><td>PowerShell Operational</td><td><code>4104</code></td><td><span class="badge badge-purple">T1059.001</span></td><td><span class="badge badge-critical">Critical</span></td><td><span class="badge badge-low">Enabled</span></td></tr>
+          <tr><td>New Process from Office App</td><td>Sysmon</td><td><code>1</code></td><td><span class="badge badge-purple">T1566.001</span></td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-low">Enabled</span></td></tr>
+          <tr><td>Privileged Logon — Off Hours</td><td>Windows Security</td><td><code>4672</code></td><td><span class="badge badge-purple">T1078</span></td><td><span class="badge badge-medium">Medium</span></td><td><span class="badge badge-low">Enabled</span></td></tr>
+          <tr><td>Audit Log Cleared</td><td>Windows Security</td><td><code>1102</code></td><td><span class="badge badge-purple">T1070.001</span></td><td><span class="badge badge-critical">Critical</span></td><td><span class="badge badge-low">Enabled</span></td></tr>
+          <tr><td>Mass File Modification (Ransomware)</td><td>Sysmon</td><td><code>11, 23</code></td><td><span class="badge badge-purple">T1486</span></td><td><span class="badge badge-critical">Critical</span></td><td><span class="badge badge-low">Enabled</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MITRE ATT&CK -->
+  <div id="mitre" class="page">
+    <div class="alert alert-info">
+      <i class="ti ti-info-circle"></i>
+      Highlighted techniques are mapped to active incidents. Click any technique for details and remediation guidance.
+    </div>
+    <div class="section-title" style="margin-bottom:12px"><i class="ti ti-sitemap"></i>ATT&CK Matrix</div>
+    <div class="mitre-grid" id="mitre-matrix"></div>
+    <div id="technique-detail" style="display:none" class="technique-detail">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div style="font-size:11px;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px" id="t-tactic"></div>
+          <h3 id="t-id-name"></h3>
+          <div id="t-desc" style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.6"></div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('technique-detail').style.display='none'"><i class="ti ti-x"></i></button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:16px">
+        <div class="detail-panel">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--accent);letter-spacing:1px;margin-bottom:10px">Detection</div>
+          <div id="t-detect" style="font-size:13px;color:var(--muted);line-height:1.5"></div>
+        </div>
+        <div class="detail-panel">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--accent);letter-spacing:1px;margin-bottom:10px">Mitigation</div>
+          <div id="t-mitigate" style="font-size:13px;color:var(--muted);line-height:1.5"></div>
+        </div>
+        <div class="detail-panel">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--accent);letter-spacing:1px;margin-bottom:10px">Linked Incidents</div>
+          <div id="t-incidents" style="font-size:13px;color:var(--muted)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VULNERABILITY MGMT -->
+  <div id="vuln" class="page">
+    <div class="stats-grid">
+      <div class="stat-card c-critical"><div class="stat-label">Critical (≥9)</div><div class="stat-value" style="color:#f0485a">1</div></div>
+      <div class="stat-card c-high"><div class="stat-label">High (7–8.9)</div><div class="stat-value" style="color:#f59e0b">1</div></div>
+      <div class="stat-card c-open"><div class="stat-label">Medium (4–6.9)</div><div class="stat-value">1</div></div>
+      <div class="stat-card c-vuln"><div class="stat-label">Remediated</div><div class="stat-value" style="color:#22c55e">2</div></div>
+    </div>
+    <div class="section-header">
+      <span class="section-title"><i class="ti ti-shield-exclamation"></i>Vulnerability Register</span>
+      <button class="btn btn-primary btn-sm" onclick="openAddVuln()"><i class="ti ti-plus"></i>Add Vulnerability</button>
+    </div>
+    <div class="card">
+      <table class="data-table">
+        <thead><tr><th>CVE ID</th><th>CVSS</th><th>Severity</th><th>Asset</th><th>Description</th><th>Status</th><th>Due Date</th><th>Actions</th></tr></thead>
+        <tbody id="vuln-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- REPORTS -->
+  <div id="reports" class="page">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
+      <div class="card" style="cursor:pointer" onclick="genReport('weekly')">
+        <div class="card-body" style="text-align:center;padding:24px">
+          <i class="ti ti-file-analytics" style="font-size:32px;color:var(--accent);margin-bottom:10px;display:block"></i>
+          <div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:6px">Weekly SOC Report</div>
+          <div style="font-size:12px;color:var(--muted)">Incident summary, KPIs, threat trends</div>
+        </div>
+      </div>
+      <div class="card" style="cursor:pointer" onclick="genReport('executive')">
+        <div class="card-body" style="text-align:center;padding:24px">
+          <i class="ti ti-presentation" style="font-size:32px;color:#c084fc;margin-bottom:10px;display:block"></i>
+          <div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:6px">Executive Summary</div>
+          <div style="font-size:12px;color:var(--muted)">High-level risk posture overview</div>
+        </div>
+      </div>
+      <div class="card" style="cursor:pointer" onclick="genReport('vuln')">
+        <div class="card-body" style="text-align:center;padding:24px">
+          <i class="ti ti-shield-check" style="font-size:32px;color:#22c55e;margin-bottom:10px;display:block"></i>
+          <div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:6px">Vulnerability Report</div>
+          <div style="font-size:12px;color:var(--muted)">CVE register, CVSS scores, remediation</div>
+        </div>
+      </div>
+    </div>
+    <div class="card" id="report-output" style="display:none">
+      <div class="card-header">
+        <span class="section-title" id="report-title"><i class="ti ti-file-text"></i>Report</span>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('report-output').style.display='none'"><i class="ti ti-x"></i>Close</button>
+      </div>
+      <div class="card-body" id="report-content"></div>
+    </div>
+  </div>
+
+  <!-- AUDIT LOG -->
+  <div id="audit" class="page">
+    <div class="section-header">
+      <span class="section-title"><i class="ti ti-history"></i>Audit Trail</span>
+      <button class="btn btn-danger btn-sm" onclick="if(confirm('Clear audit log?')){localStorage.removeItem('audit_v2');renderAudit()}"><i class="ti ti-trash"></i>Clear Log</button>
+    </div>
+    <div class="card">
+      <div class="card-body" id="audit-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD IOC MODAL -->
+<div class="modal-overlay" id="ioc-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Add Indicator of Compromise</span>
+      <button class="close-btn" onclick="closeModal('ioc-modal')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">IOC Value *</label>
+          <input id="ioc-value" class="form-control" placeholder="IP, domain, hash, URL...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type *</label>
+          <select id="ioc-type" class="form-control">
+            <option value="ip">IP Address</option>
+            <option value="domain">Domain</option>
+            <option value="hash">File Hash</option>
+            <option value="url">URL</option>
+            <option value="email">Email</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Confidence</label>
+          <select id="ioc-confidence" class="form-control">
+            <option value="Critical">Critical</option>
+            <option value="High" selected>High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Threat Actor</label>
+          <input id="ioc-actor" class="form-control" placeholder="e.g. Lazarus Group">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea id="ioc-notes" class="form-control" placeholder="Context about this indicator..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('ioc-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveIOC()"><i class="ti ti-check"></i>Add IOC</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD VULN MODAL -->
+<div class="modal-overlay" id="vuln-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Add Vulnerability</span>
+      <button class="close-btn" onclick="closeModal('vuln-modal')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">CVE ID *</label>
+          <input id="v-cve" class="form-control" placeholder="e.g. CVE-2025-1234">
+        </div>
+        <div class="form-group">
+          <label class="form-label">CVSS Score *</label>
+          <input id="v-cvss" class="form-control" type="number" min="0" max="10" step="0.1" placeholder="0.0 – 10.0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Affected Asset *</label>
+          <input id="v-asset" class="form-control" placeholder="e.g. SRV-01">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select id="v-status" class="form-control">
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Remediated">Remediated</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description *</label>
+        <textarea id="v-desc" class="form-control" placeholder="Vulnerability description, potential impact..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Due Date</label>
+        <input id="v-due" class="form-control" type="date">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('vuln-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveVuln()"><i class="ti ti-check"></i>Save Vulnerability</button>
+    </div>
+  </div>
+</div>
+
+<!-- INCIDENT DETAIL MODAL -->
+<div class="modal-overlay" id="incident-modal">
+  <div class="modal" style="width:680px">
+    <div class="modal-header">
+      <span class="modal-title" id="inc-modal-title">Incident Details</span>
+      <button class="close-btn" onclick="closeModal('incident-modal')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" id="inc-modal-body"></div>
+    <div class="modal-footer">
+      <select id="inc-status-change" class="form-control" style="width:auto;margin:0"></select>
+      <button class="btn btn-primary" onclick="updateIncidentStatus()"><i class="ti ti-refresh"></i>Update Status</button>
+      <button class="btn btn-ghost" onclick="closeModal('incident-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+const KEY = 'so_incidents_v3';
+const KEY_IOC = 'so_iocs_v3';
+const KEY_AUDIT = 'audit_v2';
+const KEY_VULN = 'so_vulns_v3';
+
+let incidents = JSON.parse(localStorage.getItem(KEY)||'[]');
+let iocs = JSON.parse(localStorage.getItem(KEY_IOC)||'[]');
+let vulns = JSON.parse(localStorage.getItem(KEY_VULN)||'null');
+let currentFilter = 'all';
+let currentIncidentId = null;
+
+// Seed data
+if(!incidents.length){
+  incidents = [
+    {id:'INC-001',title:'Phishing campaign targeting finance team',severity:'High',status:'Investigating',asset:'MAIL-SRV',mitre:'T1566.001',analyst:'A. Patel',category:'Phishing',desc:'Multiple users received spoofed emails impersonating CFO. 3 users clicked links.',created:new Date(Date.now()-86400000*2).toISOString()},
+    {id:'INC-002',title:'Ransomware behaviour detected on SRV-07',severity:'Critical',status:'Open',asset:'SRV-07',mitre:'T1486',analyst:'K. Williams',category:'Ransomware',desc:'EDR flagged mass file encryption. Host isolated. CISO notified.',created:new Date(Date.now()-3600000*5).toISOString()},
+    {id:'INC-003',title:'Suspicious lateral movement from WKS-12',severity:'High',status:'Investigating',asset:'WKS-12',mitre:'T1021',analyst:'J. Smith',category:'Unauthorised Access',desc:'PsExec usage detected across 4 hosts. Likely credential theft precursor.',created:new Date(Date.now()-3600000*18).toISOString()},
+    {id:'INC-004',title:'Admin account login from TOR exit node',severity:'Medium',status:'Resolved',asset:'VPN-GW',mitre:'T1078',analyst:'A. Patel',category:'Credential Theft',desc:'Admin account accessed from known TOR exit node. Account suspended, reset forced.',created:new Date(Date.now()-86400000*5).toISOString()},
+  ];
+  localStorage.setItem(KEY, JSON.stringify(incidents));
+}
+
+if(!iocs.length){
+  iocs = [
+    {id:'IOC-001',value:'185.220.101.4',type:'ip',confidence:'Critical',actor:'Unknown APT',notes:'Active C2 server, associated with INC-002',added:new Date().toISOString()},
+    {id:'IOC-002',value:'update-service.ru',type:'domain',confidence:'High',actor:'Unknown APT',notes:'Phishing domain used in INC-001',added:new Date(Date.now()-86400000).toISOString()},
+    {id:'IOC-003',value:'2f1b3d...e9a7c4 (Qakbot)',type:'hash',confidence:'High',actor:'Qakbot Group',notes:'Dropper hash from phishing attachment',added:new Date(Date.now()-86400000*2).toISOString()},
+    {id:'IOC-004',value:'http://malware-cdn.xyz/payload.exe',type:'url',confidence:'Medium',actor:'Unknown',notes:'Payload delivery URL',added:new Date(Date.now()-86400000*3).toISOString()},
+  ];
+  localStorage.setItem(KEY_IOC, JSON.stringify(iocs));
+}
+
+if(!vulns){
+  vulns = [
+    {id:'VLN-001',cve:'CVE-2025-1234',cvss:9.8,severity:'Critical',asset:'SRV-01',desc:'Remote code execution via unauthenticated API endpoint. No auth required.',status:'Open',due:'2025-02-01'},
+    {id:'VLN-002',cve:'CVE-2025-5678',cvss:8.2,severity:'High',asset:'WEB-02',desc:'SQL injection vulnerability in login form. Data exfiltration possible.',status:'Remediated',due:'2025-01-20'},
+    {id:'VLN-003',cve:'CVE-2025-8910',cvss:7.5,severity:'High',asset:'DB-01',desc:'Privilege escalation via misconfigured stored procedure.',status:'In Progress',due:'2025-01-28'},
+    {id:'VLN-004',cve:'CVE-2024-9872',cvss:5.4,severity:'Medium',asset:'WEB-01',desc:'Cross-site scripting in user profile fields.',status:'Open',due:'2025-02-15'},
+    {id:'VLN-005',cve:'CVE-2024-3310',cvss:4.2,severity:'Medium',asset:'MAIL-SRV',desc:'Information disclosure via verbose error messages.',status:'Remediated',due:'2025-01-15'},
+  ];
+  localStorage.setItem(KEY_VULN, JSON.stringify(vulns));
+}
+
+// ─── NAVIGATION ───────────────────────────────────────────────────────────────
+const pageTitles = {dashboard:'Dashboard',incidents:'Incident Management',logincident:'Log Incident',threatintel:'Threat Intelligence',pipeline:'Detection Pipeline',mitre:'MITRE ATT&CK Matrix',vuln:'Vulnerability Management',reports:'Reports',audit:'Audit Log'};
+const pageCrumbs = {dashboard:'/ Overview',incidents:'/ Operations',logincident:'/ Operations / New',threatintel:'/ Analysis',pipeline:'/ Analysis / Pipeline',mitre:'/ Analysis',vuln:'/ Analysis',reports:'/ Reporting',audit:'/ Reporting'};
+
+function navigate(pageId){
+  document.querySelectorAll('.nav-link').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll(`.nav-link[data-page="${pageId}"]`).forEach(n=>n.classList.add('active'));
+  const pg = document.getElementById(pageId);
+  if(pg) pg.classList.add('active');
+  document.getElementById('page-title').textContent = pageTitles[pageId]||pageId;
+  document.getElementById('page-breadcrumb').textContent = pageCrumbs[pageId]||'';
+}
+
+document.addEventListener('click', e=>{
+  const navEl = e.target.closest('[data-page]');
+  if(navEl && navEl.dataset.page){
+    e.preventDefault();
+    navigate(navEl.dataset.page);
+  }
+});
+
+// ─── LIVE TIME ─────────────────────────────────────────────────────────────────
+function updateTime(){
+  const now = new Date();
+  document.getElementById('live-time').textContent = now.toUTCString().slice(0,25)+' UTC';
+}
+updateTime(); setInterval(updateTime,1000);
+
+// ─── INCIDENT RENDERING ────────────────────────────────────────────────────────
+function severityBadge(s){
+  const m={Critical:'badge-critical',High:'badge-high',Medium:'badge-medium',Low:'badge-low'};
+  return `<span class="badge ${m[s]||'badge-low'}">${s}</span>`;
+}
+function statusBadge(s){
+  const m={Open:'badge-open',Investigating:'badge-investigating',Resolved:'badge-resolved',Closed:'badge-closed'};
+  return `<span class="badge ${m[s]||'badge-info'}">${s}</span>`;
+}
+function fmtDate(d){
+  const dt = new Date(d);
+  const diff = Date.now()-dt;
+  if(diff<3600000) return Math.round(diff/60000)+'m ago';
+  if(diff<86400000) return Math.round(diff/3600000)+'h ago';
+  return Math.round(diff/86400000)+'d ago';
+}
+
+function renderIncidents(){
+  const search = (document.getElementById('incident-search')||{}).value||'';
+  const body = document.getElementById('incidentTableBody');
+  if(!body) return;
+  let filtered = incidents.filter(i=>{
+    const matchSearch = !search || i.title.toLowerCase().includes(search.toLowerCase()) || i.id.toLowerCase().includes(search.toLowerCase()) || (i.asset||'').toLowerCase().includes(search.toLowerCase());
+    const matchFilter = currentFilter==='all' || i.severity===currentFilter || i.status===currentFilter;
+    return matchSearch && matchFilter;
+  });
+  if(!filtered.length){
+    body.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="ti ti-alert-circle"></i><p>No incidents match the current filter.</p></div></td></tr>`;
+    return;
+  }
+  body.innerHTML = filtered.map(i=>`
+    <tr onclick="showIncidentDetail('${i.id}')">
+      <td><code style="font-size:12px;color:var(--accent)">${i.id}</code></td>
+      <td style="max-width:220px">${i.title}</td>
+      <td>${severityBadge(i.severity)}</td>
+      <td>${statusBadge(i.status)}</td>
+      <td><code style="font-size:11px;color:var(--muted)">${i.asset||'—'}</code></td>
+      <td><span class="badge badge-purple">${i.mitre||'—'}</span></td>
+      <td style="color:var(--muted);font-size:12px">${fmtDate(i.created)}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showIncidentDetail('${i.id}')"><i class="ti ti-eye"></i></button></td>
+    </tr>
+  `).join('');
+}
+
+document.addEventListener('input', e=>{
+  if(e.target.id==='incident-search') renderIncidents();
+});
+
+document.addEventListener('click', e=>{
+  const fb = e.target.closest('.filter-btn');
+  if(fb){
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    fb.classList.add('active');
+    currentFilter = fb.dataset.filter;
+    renderIncidents();
+  }
+});
+
+function showIncidentDetail(id){
+  const inc = incidents.find(i=>i.id===id);
+  if(!inc) return;
+  currentIncidentId = id;
+  document.getElementById('inc-modal-title').textContent = inc.id+' — '+inc.title;
+  document.getElementById('inc-modal-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div class="detail-panel">
+        <div class="detail-row"><span class="detail-key">Severity</span>${severityBadge(inc.severity)}</div>
+        <div class="detail-row"><span class="detail-key">Status</span>${statusBadge(inc.status)}</div>
+        <div class="detail-row"><span class="detail-key">Asset</span><code style="font-size:12px">${inc.asset||'—'}</code></div>
+        <div class="detail-row"><span class="detail-key">MITRE</span><span class="badge badge-purple">${inc.mitre||'—'}</span></div>
+        <div class="detail-row"><span class="detail-key">Category</span><span style="font-size:13px">${inc.category||'—'}</span></div>
+        <div class="detail-row"><span class="detail-key">Analyst</span><span style="font-size:13px">${inc.analyst||'—'}</span></div>
+        <div class="detail-row"><span class="detail-key">Created</span><span style="font-size:12px;color:var(--muted)">${new Date(inc.created).toLocaleString()}</span></div>
+      </div>
+      <div class="detail-panel">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--accent);letter-spacing:1px;margin-bottom:8px">Description</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.6">${inc.desc||'No description provided.'}</p>
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--accent);letter-spacing:1px;margin-bottom:8px">Timeline</div>
+    <div class="timeline">
+      <div class="timeline-item"><div class="timeline-time">${new Date(inc.created).toLocaleString()}</div><div class="timeline-text">Incident created — ${inc.analyst||'Unknown analyst'}</div></div>
+      ${inc.status==='Investigating'?`<div class="timeline-item"><div class="timeline-time">In progress</div><div class="timeline-text">Investigation underway</div></div>`:''}
+      ${inc.status==='Resolved'?`<div class="timeline-item"><div class="timeline-time">Resolved</div><div class="timeline-text">Incident closed and documented</div></div>`:''}
+    </div>
+  `;
+  const sc = document.getElementById('inc-status-change');
+  sc.innerHTML = ['Open','Investigating','Resolved','Closed'].map(s=>`<option ${s===inc.status?'selected':''}>${s}</option>`).join('');
+  openModal('incident-modal');
+}
+
+function updateIncidentStatus(){
+  const inc = incidents.find(i=>i.id===currentIncidentId);
+  if(!inc) return;
+  const newStatus = document.getElementById('inc-status-change').value;
+  inc.status = newStatus;
+  save();
+  logAudit(`Status updated: ${inc.id} → ${newStatus}`, 'ti-refresh', '#60a5fa');
+  closeModal('incident-modal');
+}
+
+// ─── CREATE INCIDENT ──────────────────────────────────────────────────────────
+function createIncident(){
+  const title = document.getElementById('inc-title').value.trim();
+  const desc = document.getElementById('inc-desc').value.trim();
+  const asset = document.getElementById('inc-asset').value.trim();
+  if(!title||!desc||!asset){alert('Please fill in Title, Asset and Description.');return;}
+  const inc = {
+    id:'INC-'+String(Date.now()).slice(-5),
+    title,
+    severity:document.getElementById('inc-severity').value,
+    status:'Open',
+    asset,
+    mitre:document.getElementById('inc-mitre').value.trim()||'—',
+    analyst:document.getElementById('inc-analyst').value.trim()||'Unassigned',
+    category:document.getElementById('inc-category').value,
+    desc,
+    created:new Date().toISOString()
+  };
+  incidents.unshift(inc);
+  save();
+  logAudit(`Incident created: ${inc.id} — ${inc.title}`, 'ti-plus', '#f0485a');
+  clearForm();
+  document.getElementById('form-success').style.display='flex';
+  setTimeout(()=>document.getElementById('form-success').style.display='none',3000);
+  updateDashboard();
+}
+
+function clearForm(){
+  ['inc-title','inc-asset','inc-mitre','inc-analyst','inc-desc','inc-iocs'].forEach(id=>document.getElementById(id).value='');
+}
+
+// ─── IOC RENDERING ────────────────────────────────────────────────────────────
+const iocIconMap = {ip:'ti-network',domain:'ti-world',hash:'ti-fingerprint',url:'ti-link',email:'ti-mail'};
+const iocColorMap = {ip:'ip',domain:'domain',hash:'hash',url:'url',email:'domain'};
+const confColorMap = {Critical:'#f0485a',High:'#f59e0b',Medium:'#60a5fa',Low:'#22c55e'};
+const confWidthMap = {Critical:'95%',High:'78%',Medium:'55%',Low:'30%'};
+
+function renderIOCs(){
+  const list = document.getElementById('ioc-list');
+  if(!list) return;
+  document.getElementById('ioc-total').textContent = iocs.length;
+  list.innerHTML = iocs.map(ioc=>`
+    <div class="ioc-card">
+      <div class="ioc-icon ${iocColorMap[ioc.type]||'ip'}"><i class="ti ${iocIconMap[ioc.type]||'ti-alert-triangle'}"></i></div>
+      <div style="flex:1;min-width:0">
+        <div class="ioc-value" style="word-break:break-all">${ioc.value}</div>
+        <div class="ioc-meta">${ioc.type.toUpperCase()} — ${ioc.actor||'Unknown'} — Added ${fmtDate(ioc.added)}</div>
+        ${ioc.notes?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${ioc.notes}</div>`:''}
+        <div class="confidence-bar"><div class="confidence-fill" style="width:${confWidthMap[ioc.confidence]||'50%'};background:${confColorMap[ioc.confidence]||'#60a5fa'}"></div></div>
+      </div>
+      <div class="ioc-actions">
+        <span class="badge badge-${ioc.confidence==='Critical'?'critical':ioc.confidence==='High'?'high':ioc.confidence==='Medium'?'medium':'low'}">${ioc.confidence}</span>
+        <button class="btn btn-danger btn-sm" onclick="deleteIOC('${ioc.id}')"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>
+  `).join('') || '<div class="empty-state"><i class="ti ti-radar"></i><p>No IOCs logged yet.</p></div>';
+}
+
+function openAddIOC(){openModal('ioc-modal')}
+function saveIOC(){
+  const val = document.getElementById('ioc-value').value.trim();
+  if(!val){alert('IOC value is required.');return;}
+  const ioc = {
+    id:'IOC-'+Date.now(),
+    value:val,
+    type:document.getElementById('ioc-type').value,
+    confidence:document.getElementById('ioc-confidence').value,
+    actor:document.getElementById('ioc-actor').value.trim()||'Unknown',
+    notes:document.getElementById('ioc-notes').value.trim(),
+    added:new Date().toISOString()
+  };
+  iocs.unshift(ioc);
+  localStorage.setItem(KEY_IOC, JSON.stringify(iocs));
+  logAudit(`IOC added: ${ioc.value}`, 'ti-radar', '#f59e0b');
+  closeModal('ioc-modal');
+  renderIOCs();
+  ['ioc-value','ioc-actor','ioc-notes'].forEach(id=>document.getElementById(id).value='');
+}
+function deleteIOC(id){
+  if(!confirm('Remove this IOC?')) return;
+  iocs = iocs.filter(i=>i.id!==id);
+  localStorage.setItem(KEY_IOC, JSON.stringify(iocs));
+  logAudit(`IOC removed: ${id}`, 'ti-trash', '#f0485a');
+  renderIOCs();
+}
+
+// ─── VULNERABILITY RENDERING ─────────────────────────────────────────────────
+function cvssColor(score){
+  if(score>=9) return '#f0485a';
+  if(score>=7) return '#f59e0b';
+  if(score>=4) return '#60a5fa';
+  return '#22c55e';
+}
+function cvssLabel(score){
+  if(score>=9) return 'Critical';
+  if(score>=7) return 'High';
+  if(score>=4) return 'Medium';
+  return 'Low';
+}
+function vulnStatusBadge(s){
+  if(s==='Remediated') return '<span class="badge badge-remediated">Remediated</span>';
+  if(s==='In Progress') return '<span class="badge badge-inprogress">In Progress</span>';
+  return '<span class="badge badge-open">Open</span>';
+}
+
+function renderVulns(){
+  const body = document.getElementById('vuln-table-body');
+  if(!body) return;
+  body.innerHTML = vulns.map(v=>`
+    <tr>
+      <td><code style="color:var(--accent);font-size:12px">${v.cve}</code></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:15px;font-weight:700;color:${cvssColor(v.cvss)}">${v.cvss}</span>
+          <div style="flex:1;min-width:60px"><div class="cvss-bar"><div class="cvss-fill" style="width:${v.cvss*10}%;background:${cvssColor(v.cvss)}"></div></div></div>
+        </div>
+      </td>
+      <td><span class="badge badge-${cvssLabel(v.cvss).toLowerCase()}">${cvssLabel(v.cvss)}</span></td>
+      <td><code style="font-size:11px;color:var(--muted)">${v.asset}</code></td>
+      <td style="max-width:200px;font-size:12px;color:var(--muted)">${v.desc}</td>
+      <td>${vulnStatusBadge(v.status)}</td>
+      <td style="font-size:12px;color:var(--muted)">${v.due||'—'}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="updateVulnStatus('${v.id}','${v.status}')"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="deleteVuln('${v.id}')"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openAddVuln(){openModal('vuln-modal')}
+function saveVuln(){
+  const cve = document.getElementById('v-cve').value.trim();
+  const cvss = parseFloat(document.getElementById('v-cvss').value);
+  const asset = document.getElementById('v-asset').value.trim();
+  const desc = document.getElementById('v-desc').value.trim();
+  if(!cve||isNaN(cvss)||!asset||!desc){alert('CVE ID, CVSS score, asset and description are required.');return;}
+  const v = {
+    id:'VLN-'+Date.now(),
+    cve,cvss,severity:cvssLabel(cvss),
+    asset,desc,
+    status:document.getElementById('v-status').value,
+    due:document.getElementById('v-due').value
+  };
+  vulns.unshift(v);
+  localStorage.setItem(KEY_VULN, JSON.stringify(vulns));
+  logAudit(`Vulnerability added: ${cve}`, 'ti-shield-exclamation', '#c084fc');
+  closeModal('vuln-modal');
+  renderVulns();
+  ['v-cve','v-cvss','v-asset','v-desc','v-due'].forEach(id=>document.getElementById(id).value='');
+}
+function updateVulnStatus(id, current){
+  const statuses = ['Open','In Progress','Remediated'];
+  const next = statuses[(statuses.indexOf(current)+1)%statuses.length];
+  const v = vulns.find(x=>x.id===id);
+  if(v){v.status=next;localStorage.setItem(KEY_VULN,JSON.stringify(vulns));logAudit(`Vuln ${v.cve} → ${next}`,'ti-refresh','#22c55e');renderVulns();}
+}
+function deleteVuln(id){
+  if(!confirm('Delete this vulnerability?')) return;
+  vulns = vulns.filter(v=>v.id!==id);
+  localStorage.setItem(KEY_VULN, JSON.stringify(vulns));
+  renderVulns();
+}
+
+// ─── MITRE ATT&CK ─────────────────────────────────────────────────────────────
+const mitreData = [
+  {tactic:'Initial Access',techniques:[{id:'T1566',name:'Phishing',desc:'Adversaries may send phishing messages to gain access to victim systems. Phishing may be conducted as spearphishing (targeted) or bulk campaigns.',detect:'Email gateway logs, attachment sandboxing, user-reported phish.',mitigate:'Anti-phishing controls, MFA, security awareness training.',linked:['INC-001']},{id:'T1190',name:'Exploit Public App',desc:'Adversary targets internet-facing software with a vulnerability.',detect:'WAF alerts, anomalous HTTP patterns, IDS signatures.',mitigate:'Patch management, WAF deployment, network segmentation.',linked:[]}]},
+  {tactic:'Execution',techniques:[{id:'T1059',name:'Command Scripting',desc:'Adversaries may abuse command and script interpreters to execute commands, scripts, or binaries. PowerShell, cmd, bash are common targets.',detect:'Command-line logging, script block logging, PowerShell transcription.',mitigate:'Constrained Language Mode, AMSI, application allowlisting.',linked:['INC-002']},{id:'T1204',name:'User Execution',desc:'An adversary may rely upon specific actions by a user to gain execution.',detect:'Process creation events, email click-through logs.',mitigate:'Disable macros, user training, sandbox detonation.',linked:[]}]},
+  {tactic:'Persistence',techniques:[{id:'T1053',name:'Scheduled Task',desc:'Adversaries may abuse task scheduling to execute malicious code.',detect:'Scheduled task creation events (Event ID 4698).',mitigate:'Audit scheduled tasks, principle of least privilege.',linked:[]},{id:'T1078',name:'Valid Accounts',desc:'Adversaries may obtain and abuse credentials of existing accounts.',detect:'Unusual login times, geo-anomalies, impossible travel alerts.',mitigate:'MFA, privileged access workstations, account monitoring.',linked:['INC-004']}]},
+  {tactic:'Privilege Escalation',techniques:[{id:'T1055',name:'Process Injection',desc:'Injecting malicious code into a legitimate process to evade detection.',detect:'Unusual memory allocations, cross-process API calls.',mitigate:'Endpoint detection tools, process isolation.',linked:[]},{id:'T1068',name:'Exploit for Privesc',desc:'Exploiting software vulnerabilities for elevated permissions.',detect:'Exploit signature detection, kernel integrity monitoring.',mitigate:'Timely patching, least-privilege user accounts.',linked:[]}]},
+  {tactic:'Defence Evasion',techniques:[{id:'T1027',name:'Obfuscated Files',desc:'Making content difficult to discover or analyse.',detect:'AMSI, static analysis, entropy analysis.',mitigate:'Content scanning, application control.',linked:[]},{id:'T1562',name:'Impair Defences',desc:'Adversary may disable or modify security tools.',detect:'Security tool health monitoring, service status alerts.',mitigate:'Tamper protection, centralised log collection.',linked:[]}]},
+  {tactic:'Lateral Movement',techniques:[{id:'T1021',name:'Remote Services',desc:'Adversaries may use remote services such as RDP or SMB to move laterally.',detect:'Authentication logs, unusual admin shares access.',mitigate:'Disable unnecessary services, network segmentation, JIT access.',linked:['INC-003']},{id:'T1550',name:'Use Alt Auth Material',desc:'Pass-the-hash, pass-the-ticket attacks.',detect:'Kerberos anomalies, NTLM relay detection.',mitigate:'Credential Guard, Protected Users group.',linked:[]}]},
+  {tactic:'Impact',techniques:[{id:'T1486',name:'Data Encrypted',desc:'Adversaries may encrypt data on target systems or a large number of systems to interrupt availability to system and network resources.',detect:'Mass file modification events, honeypot file monitoring.',mitigate:'Backups, immutable storage, EDR behavioural rules.',linked:['INC-002']},{id:'T1490',name:'Inhibit Recovery',desc:'Deleting shadow copies to prevent recovery.',detect:'VSS deletion events (Event ID 524).',mitigate:'Offsite backups, read-only shadow copy policy.',linked:[]}]},
+];
+
+function buildMitreMatrix(){
+  const matrix = document.getElementById('mitre-matrix');
+  if(!matrix) return;
+  const allLinked = incidents.map(i=>i.mitre).filter(Boolean);
+  matrix.innerHTML = mitreData.map(tac=>`
+    <div class="tactic-col">
+      <div class="tactic-header">${tac.tactic}</div>
+      ${tac.techniques.map(t=>`
+        <button class="technique-btn ${t.linked.length||allLinked.includes(t.id)?'used':''}" onclick="showTechniqueDetail('${t.id}')">
+          <span class="tid">${t.id}</span>${t.name}
+        </button>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function showTechniqueDetail(id){
+  const all = mitreData.flatMap(t=>t.techniques);
+  const t = all.find(x=>x.id===id);
+  if(!t) return;
+  const tac = mitreData.find(m=>m.techniques.some(x=>x.id===id));
+  document.getElementById('t-tactic').textContent = tac?.tactic||'';
+  document.getElementById('t-id-name').textContent = t.id+' — '+t.name;
+  document.getElementById('t-desc').textContent = t.desc;
+  document.getElementById('t-detect').textContent = t.detect;
+  document.getElementById('t-mitigate').textContent = t.mitigate;
+  const linkedIncs = incidents.filter(i=>i.mitre===id||t.linked.includes(i.id));
+  document.getElementById('t-incidents').innerHTML = linkedIncs.length
+    ? linkedIncs.map(i=>`<div style="margin-bottom:4px">${severityBadge(i.severity)} <span style="font-size:12px">${i.id}</span></div>`).join('')
+    : '<span style="color:var(--muted);font-size:13px">No linked incidents</span>';
+  document.getElementById('technique-detail').style.display='block';
+  document.getElementById('technique-detail').scrollIntoView({behavior:'smooth'});
+}
+
+// ─── REPORTS ──────────────────────────────────────────────────────────────────
+function genReport(type){
+  const out = document.getElementById('report-output');
+  const content = document.getElementById('report-content');
+  const title = document.getElementById('report-title');
+  out.style.display='block';
+  const now = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+  if(type==='weekly'){
+    title.innerHTML='<i class="ti ti-file-analytics"></i> Weekly SOC Report — '+now;
+    const open = incidents.filter(i=>i.status==='Open').length;
+    const critical = incidents.filter(i=>i.severity==='Critical').length;
+    content.innerHTML=`
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+        <div class="stat-card c-critical"><div class="stat-label">Total Incidents</div><div class="stat-value">${incidents.length}</div></div>
+        <div class="stat-card c-high"><div class="stat-label">Critical</div><div class="stat-value" style="color:#f0485a">${critical}</div></div>
+        <div class="stat-card c-open"><div class="stat-label">Open</div><div class="stat-value">${open}</div></div>
+        <div class="stat-card c-vuln"><div class="stat-label">IOCs</div><div class="stat-value">${iocs.length}</div></div>
+      </div>
+      <h3 style="color:#fff;margin-bottom:12px;font-size:14px">Incident Summary</h3>
+      <table class="data-table" style="margin-bottom:20px">
+        <thead><tr><th>ID</th><th>Title</th><th>Severity</th><th>Status</th></tr></thead>
+        <tbody>${incidents.slice(0,5).map(i=>`<tr><td>${i.id}</td><td>${i.title}</td><td>${severityBadge(i.severity)}</td><td>${statusBadge(i.status)}</td></tr>`).join('')}</tbody>
+      </table>
+      <h3 style="color:#fff;margin-bottom:8px;font-size:14px">Key Performance Indicators</h3>
+      <div class="detail-panel">
+        <div class="detail-row"><span class="detail-key">Mean Time to Detect (MTTD)</span><span>4.2 hrs</span></div>
+        <div class="detail-row"><span class="detail-key">Mean Time to Respond (MTTR)</span><span>11.8 hrs</span></div>
+        <div class="detail-row"><span class="detail-key">False Positive Rate</span><span style="color:#22c55e">8%</span></div>
+        <div class="detail-row"><span class="detail-key">Threat Intel IOCs Active</span><span>${iocs.length}</span></div>
+      </div>`;
+  } else if(type==='executive'){
+    title.innerHTML='<i class="ti ti-presentation"></i> Executive Summary — '+now;
+    content.innerHTML=`
+      <div class="alert alert-critical"><i class="ti ti-alert-octagon"></i><strong>Critical Risk:</strong> Active ransomware incident (INC-002) requires board-level awareness. Business continuity plans activated.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px">
+        <div class="detail-panel">
+          <div style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Risk Posture</div>
+          <div class="detail-row"><span class="detail-key">Overall Risk</span><span class="badge badge-critical">HIGH</span></div>
+          <div class="detail-row"><span class="detail-key">Open Critical Incidents</span><span style="color:#f0485a">${incidents.filter(i=>i.severity==='Critical'&&i.status!=='Resolved').length}</span></div>
+          <div class="detail-row"><span class="detail-key">Unpatched Critical CVEs</span><span style="color:#f0485a">${vulns.filter(v=>v.cvss>=9&&v.status!=='Remediated').length}</span></div>
+          <div class="detail-row"><span class="detail-key">Active Threat Actors</span><span>2 tracked</span></div>
+        </div>
+        <div class="detail-panel">
+          <div style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Recommendations</div>
+          <ul style="font-size:13px;color:var(--muted);padding-left:16px;line-height:2">
+            <li>Isolate SRV-07 and restore from clean backup</li>
+            <li>Enforce MFA across all privileged accounts</li>
+            <li>Patch CVE-2025-1234 within 48 hours</li>
+            <li>Block IOC 185.220.101.4 at perimeter</li>
+          </ul>
+        </div>
+      </div>`;
+  } else {
+    title.innerHTML='<i class="ti ti-shield-check"></i> Vulnerability Report — '+now;
+    content.innerHTML=`
+      <table class="data-table">
+        <thead><tr><th>CVE</th><th>CVSS</th><th>Asset</th><th>Status</th><th>Due Date</th></tr></thead>
+        <tbody>${vulns.map(v=>`<tr><td><code style="color:var(--accent)">${v.cve}</code></td><td style="color:${cvssColor(v.cvss)};font-weight:700">${v.cvss}</td><td><code style="font-size:11px">${v.asset}</code></td><td>${vulnStatusBadge(v.status)}</td><td style="font-size:12px">${v.due||'—'}</td></tr>`).join('')}</tbody>
+      </table>`;
+  }
+  out.scrollIntoView({behavior:'smooth'});
+}
+
+// ─── AUDIT LOG ────────────────────────────────────────────────────────────────
+function logAudit(text, icon='ti-activity', color='#60a5fa'){
+  const logs = JSON.parse(localStorage.getItem(KEY_AUDIT)||'[]');
+  logs.unshift({text, icon, color, time:new Date().toISOString()});
+  if(logs.length>200) logs.pop();
+  localStorage.setItem(KEY_AUDIT, JSON.stringify(logs));
+  renderAudit();
+}
+
+function renderAudit(){
+  const body = document.getElementById('audit-body');
+  if(!body) return;
+  const logs = JSON.parse(localStorage.getItem(KEY_AUDIT)||'[]');
+  if(!logs.length){
+    body.innerHTML='<div class="empty-state"><i class="ti ti-history"></i><p>No audit events recorded yet.</p></div>';
+    return;
+  }
+  body.innerHTML = logs.map(l=>`
+    <div class="audit-item">
+      <div class="audit-icon" style="background:${l.color}22;color:${l.color}"><i class="ti ${l.icon||'ti-activity'}"></i></div>
+      <div>
+        <div style="font-size:13px;color:var(--text)">${l.text}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${new Date(l.time).toLocaleString()}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+function updateDashboard(){
+  document.getElementById('totalInc').textContent = incidents.length;
+  document.getElementById('criticalInc').textContent = incidents.filter(i=>i.severity==='Critical').length;
+  document.getElementById('openInc').textContent = incidents.filter(i=>['Open','Investigating'].includes(i.status)).length;
+  document.getElementById('alert-count').textContent = incidents.filter(i=>i.severity==='Critical'&&i.status!=='Resolved').length + vulns.filter(v=>v.cvss>=9&&v.status!=='Remediated').length;
+  renderRecentIncidents();
+  renderSeverityChart();
+  renderActivityChart();
+}
+
+function renderRecentIncidents(){
+  const el = document.getElementById('recent-incidents-list');
+  if(!el) return;
+  el.innerHTML = incidents.slice(0,4).map(i=>`
+    <div style="padding:10px 16px;border-bottom:1px solid rgba(26,51,84,.4);display:flex;align-items:center;gap:10px;cursor:pointer" onclick="navigate('incidents');showIncidentDetail('${i.id}')">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i.title}</div>
+        <div style="font-size:11px;color:var(--muted)">${i.id} · ${i.asset||'unknown'} · ${fmtDate(i.created)}</div>
+      </div>
+      ${severityBadge(i.severity)}
+      ${statusBadge(i.status)}
+    </div>
+  `).join('') || '<div class="empty-state" style="padding:20px"><p>No incidents logged.</p></div>';
+}
+
+function renderSeverityChart(){
+  const el = document.getElementById('severity-chart');
+  if(!el) return;
+  const counts = {Critical:0,High:0,Medium:0,Low:0};
+  incidents.forEach(i=>{counts[i.severity]=(counts[i.severity]||0)+1});
+  const colors = {Critical:'#f0485a',High:'#f59e0b',Medium:'#60a5fa',Low:'#22c55e'};
+  const max = Math.max(...Object.values(counts),1);
+  el.innerHTML = `<div style="display:flex;align-items:flex-end;gap:16px;height:80px">
+    ${Object.entries(counts).map(([s,c])=>`
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <span style="font-size:12px;font-weight:700;color:${colors[s]};margin-bottom:4px">${c}</span>
+        <div style="width:100%;height:${Math.round((c/max)*60)}px;background:${colors[s]};border-radius:4px 4px 0 0;min-height:4px;opacity:.8"></div>
+        <span style="font-size:10px;color:var(--muted);margin-top:4px">${s}</span>
+      </div>
+    `).join('')}
+  </div>`;
+  const leg = document.getElementById('severity-legend');
+  if(leg) leg.innerHTML = Object.entries(colors).map(([s,c])=>`<span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${c};margin-right:4px"></span>${s}: ${counts[s]}</span>`).join('');
+}
+
+function renderActivityChart(){
+  const el = document.getElementById('activity-chart');
+  if(!el) return;
+  const vals = [3,7,2,9,5,1,4];
+  const max = Math.max(...vals);
+  const colors = ['#f59e0b','#f0485a','#60a5fa','#f0485a','#c084fc','#22c55e','#f59e0b'];
+  el.innerHTML = vals.map((v,i)=>`<div style="flex:1;height:${Math.round((v/max)*50)}px;background:${colors[i]};border-radius:3px 3px 0 0;opacity:.75"></div>`).join('');
+}
+
+// ─── MODAL HELPERS ────────────────────────────────────────────────────────────
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+document.addEventListener('click', e=>{if(e.target.classList.contains('modal-overlay')) e.target.classList.remove('open')});
+
+// ─── SAVE ─────────────────────────────────────────────────────────────────────
+function save(){localStorage.setItem(KEY,JSON.stringify(incidents))}
+
+// ─── DETECTION PIPELINE (SPLUNK-STYLE) ─────────────────────────────────────────
+const pipeStagesDef = [
+  {key:'log',icon:'ti-brand-windows',title:'Windows Log',sub:'Event collected'},
+  {key:'rule',icon:'ti-list-search',title:'Detection Rule',sub:'Matched against SIEM rule'},
+  {key:'incident',icon:'ti-alert-triangle',title:'Incident Created',sub:'Case opened automatically'},
+  {key:'mitre',icon:'ti-sitemap',title:'MITRE Technique Assigned',sub:'ATT&CK mapping applied'},
+  {key:'analyst',icon:'ti-user-search',title:'Analyst Investigation',sub:'Queued for triage'}
+];
+
+function renderPipelineStages(activeIndex=-1, doneUpTo=-1){
+  const el = document.getElementById('pipeline-stages');
+  if(!el) return;
+  let html = '';
+  pipeStagesDef.forEach((s,i)=>{
+    let cls='pipe-stage';
+    if(i===activeIndex) cls+=' lit';
+    else if(i<=doneUpTo) cls+=' done';
+    html += `<div class="${cls}"><div class="pipe-pulse"></div><i class="ti ${s.icon}"></i><div class="pipe-title">${s.title}</div><div class="pipe-sub">${i===activeIndex?'<span style=\"color:var(--accent)\">Processing…</span>':(i<=doneUpTo?'<span style=\"color:#22c55e\">Complete</span>':s.sub)}</div></div>`;
+    if(i<pipeStagesDef.length-1){
+      const arrowLit = (i<activeIndex)||(i<=doneUpTo);
+      html += `<div class="pipe-arrow${arrowLit?' lit':''}"><i class="ti ti-arrow-right"></i></div>`;
+    }
+  });
+  el.innerHTML = html;
+}
+
+const logHosts = ['WKS-14','SRV-07','WKS-12','DC-01','MAIL-SRV','VPN-GW','WEB-02','FIN-LAPTOP-03'];
+const benignLogs = [
+  {evt:'4624',msg:'An account was successfully logged on. LogonType: 2'},
+  {evt:'4688',msg:'A new process has been created: explorer.exe'},
+  {evt:'5156',msg:'The Windows Filtering Platform allowed a connection on port 443'},
+  {evt:'4634',msg:'An account was logged off.'},
+  {evt:'4663',msg:'An attempt was made to access an object: C:\\\\Reports\\\\q1.xlsx'},
+  {evt:'7036',msg:'The Windows Update service entered the running state.'}
+];
+const matchLogs = [
+  {evt:'4625',rule:'Brute Force — Repeated 4625',mitre:'T1110',sev:'High',msg:'An account failed to log on. <span class="hl">Status: 0xC000006A</span> — 6th attempt in 90s',title:'Brute-force logon attempts detected on'},
+  {evt:'4104',rule:'Suspicious PowerShell EncodedCommand',mitre:'T1059.001',sev:'Critical',msg:'PowerShell script block: <span class="hl">-EncodedCommand JAB...IEX</span>',title:'Suspicious encoded PowerShell execution on'},
+  {evt:'1102',rule:'Audit Log Cleared',mitre:'T1070.001',sev:'Critical',msg:'<span class="hl">The audit log was cleared.</span> SubjectUserName: svc_admin',title:'Security audit log cleared on'},
+  {evt:'1',rule:'New Process from Office App',mitre:'T1566.001',sev:'High',msg:'Parent: WINWORD.EXE → Child: <span class="hl">powershell.exe -nop -w hidden</span>',title:'Malicious macro spawned process on'},
+  {evt:'4672',rule:'Privileged Logon — Off Hours',mitre:'T1078',sev:'Medium',msg:'Special privileges assigned to new logon at <span class="hl">03:14 AM</span>',title:'Off-hours privileged logon on'},
+  {evt:'11',rule:'Mass File Modification (Ransomware)',mitre:'T1486',sev:'Critical',msg:'<span class="hl">214 files renamed with .locked extension</span> in 8s',title:'Mass file encryption activity on'}
+];
+
+function fmtTs(d){return d.toISOString().replace('T',' ').slice(0,19)+'Z'}
+
+function logLineHtml(host, l, isMatch, isNew){
+  const ts = fmtTs(new Date());
+  return `<div class="log-line${isNew?' new':''}">
+    <span class="log-ts">${ts}</span>
+    <span class="log-host">${host}</span>
+    <span class="log-evt">EventCode=${l.evt}</span>
+    <span class="log-msg">${l.msg}</span>
+    ${isMatch?`<span class="log-tag match">RULE MATCH</span>`:''}
+  </div>`;
+}
+
+let pipelineRunning = false;
+function seedLogConsole(){
+  const el = document.getElementById('log-console');
+  if(!el) return;
+  let html='';
+  for(let i=0;i<14;i++){
+    const l = benignLogs[Math.floor(Math.random()*benignLogs.length)];
+    const host = logHosts[Math.floor(Math.random()*logHosts.length)];
+    html += logLineHtml(host, l, false, false);
+  }
+  el.innerHTML = html;
+  renderPipelineStages();
+}
+
+let logFeedTimer = null;
+function startLogFeed(){
+  if(logFeedTimer) return;
+  let rate = 0;
+  logFeedTimer = setInterval(()=>{
+    if(pipelineRunning) return;
+    const el = document.getElementById('log-console');
+    if(!el || !el.offsetParent) return;
+    const l = benignLogs[Math.floor(Math.random()*benignLogs.length)];
+    const host = logHosts[Math.floor(Math.random()*logHosts.length)];
+    el.insertAdjacentHTML('afterbegin', logLineHtml(host, l, false, true));
+    while(el.children.length>40) el.removeChild(el.lastChild);
+    rate = Math.min(60, rate+Math.floor(Math.random()*4)+1);
+    const r = document.getElementById('log-rate');
+    if(r) r.innerHTML = `events/min: <strong style="color:#fff">${30+Math.floor(Math.random()*25)}</strong>`;
+  }, 1800);
+}
+
+function simulatePipeline(){
+  if(pipelineRunning) return;
+  pipelineRunning = true;
+  const m = matchLogs[Math.floor(Math.random()*matchLogs.length)];
+  const host = logHosts[Math.floor(Math.random()*logHosts.length)];
+  const el = document.getElementById('log-console');
+
+  let step = 0;
+  renderPipelineStages(0,-1);
+
+  function next(){
+    if(step===0){
+      // Windows Log ingested
+      if(el){
+        el.insertAdjacentHTML('afterbegin', logLineHtml(host, m, true, true));
+        while(el.children.length>40) el.removeChild(el.lastChild);
+      }
+    }
+    if(step===2){
+      // Incident created
+      const inc = {
+        id:'INC-'+String(Date.now()).slice(-5),
+        title:`${m.title} ${host}`,
+        severity:m.sev,
+        status:'Open',
+        asset:host,
+        mitre:m.mitre,
+        analyst:'Unassigned',
+        category:'Other',
+        desc:`Auto-generated from detection rule "${m.rule}" (EventCode=${m.evt}). Raw log indicates: ${m.msg.replace(/<[^>]+>/g,'')}`,
+        created:new Date().toISOString()
+      };
+      incidents.unshift(inc);
+      save();
+      logAudit(`Detection rule "${m.rule}" fired → ${inc.id} auto-created on ${host}`, 'ti-bolt', '#f59e0b');
+      updateDashboard();
+      window.__lastPipeIncident = inc.id;
+    }
+    if(step===3){
+      logAudit(`MITRE technique ${m.mitre} assigned to ${window.__lastPipeIncident}`, 'ti-sitemap', '#c084fc');
+    }
+    if(step===4){
+      logAudit(`${window.__lastPipeIncident} queued for analyst investigation`, 'ti-user-search', '#60a5fa');
+      renderIncidents();
+    }
+    renderPipelineStages(step, step-1);
+    if(step<4){ step++; setTimeout(next, 850); }
+    else {
+      setTimeout(()=>{ renderPipelineStages(-1,4); pipelineRunning=false; }, 1200);
+    }
+  }
+  next();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+buildMitreMatrix();
+renderIncidents();
+renderIOCs();
+renderVulns();
+renderAudit();
+updateDashboard();
+seedLogConsole();
+startLogFeed();
+</script>
+</body>
+</html>
