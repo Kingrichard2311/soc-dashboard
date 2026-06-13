@@ -1,0 +1,330 @@
+# 🔐 SecureOps SOC Platform
+
+A Security Operations Center (SOC) simulation platform designed to demonstrate core cybersecurity operations including incident management, threat intelligence, vulnerability management, MITRE ATT&CK mapping, security reporting, and SIEM-style detection workflows.
+
+Built as a portfolio project to showcase practical cybersecurity concepts and SOC analyst skills.
+
+---
+
+## 📌 Overview
+
+SecureOps SOC Platform is a browser-based cybersecurity dashboard that simulates the workflow of a modern Security Operations Center.
+
+The platform allows users to:
+
+* Monitor security incidents
+* Investigate threats
+* Track Indicators of Compromise (IOCs)
+* Manage vulnerabilities
+* Map attacker techniques using MITRE ATT&CK
+* Generate security reports
+* Review audit logs
+* Simulate SIEM detection pipelines
+
+The goal of this project is to demonstrate understanding of cybersecurity operations and incident response processes in a practical environment.
+
+---
+
+## 🚀 Features
+
+### 📊 Security Dashboard
+
+Provides a high-level overview of the organization's security posture.
+
+Features:
+
+* Total Incidents
+* Critical Incidents
+* Open Investigations
+* Vulnerability Statistics
+* Active Threat Alerts
+* SOC Performance Metrics
+* IOC Monitoring
+
+---
+
+### 🚨 Incident Management
+
+Track and manage security incidents throughout their lifecycle.
+
+Features:
+
+* Incident Creation
+* Severity Classification
+* Status Tracking
+* Asset Identification
+* MITRE ATT&CK Mapping
+* Analyst Assignment
+* Incident Timelines
+
+Example Incident Types:
+
+* Phishing
+* Ransomware
+* Credential Theft
+* Insider Threat
+* Unauthorized Access
+* Data Exfiltration
+
+---
+
+### 📝 Incident Reporting
+
+Analysts can create detailed incident reports containing:
+
+* Incident Title
+* Severity
+* Affected Assets
+* MITRE Technique
+* Description
+* Indicators of Compromise
+* Assigned Analyst
+
+All actions are automatically logged to the audit trail.
+
+---
+
+### 🎯 Threat Intelligence Management
+
+Manage and investigate Indicators of Compromise (IOCs).
+
+Supported IOC Types:
+
+* IP Addresses
+* Domains
+* URLs
+* File Hashes
+* Email Addresses
+
+Additional Features:
+
+* Confidence Scoring
+* Threat Actor Attribution
+* IOC Tracking
+* Threat Feed Simulation
+
+---
+
+### ⚡ Detection Pipeline (SIEM Simulation)
+
+One of the core features of the platform.
+
+The Detection Pipeline demonstrates how a SOC processes security events from detection to response.
+
+Workflow:
+
+```text
+Windows Event Logs
+        ↓
+Detection Rules
+        ↓
+Alert Correlation
+        ↓
+MITRE ATT&CK Mapping
+        ↓
+Incident Creation
+        ↓
+Analyst Investigation
+```
+
+Simulated Detection Rules:
+
+* Failed Logins (Event ID 4625)
+* Privileged Logins (4672)
+* PowerShell Abuse (4104)
+* Audit Log Clearing (1102)
+* Ransomware Activity
+* Office Process Execution
+
+---
+
+### 🗺️ MITRE ATT&CK Integration
+
+The platform incorporates the MITRE ATT&CK framework to classify adversary behaviour.
+
+Each technique includes:
+
+* Description
+* Detection Guidance
+* Mitigation Recommendations
+* Linked Incidents
+
+Benefits:
+
+* Threat Classification
+* Security Monitoring Alignment
+* Detection Engineering Support
+* Analyst Training
+
+---
+
+### 🛡️ Vulnerability Management
+
+Track vulnerabilities and remediation efforts.
+
+Features:
+
+* CVE Tracking
+* CVSS Scoring
+* Risk Prioritization
+* Asset Tracking
+* Remediation Status
+* Due Date Management
+
+Severity Levels:
+
+* Critical
+* High
+* Medium
+* Low
+
+---
+
+### 📈 Security Reporting
+
+Generate different types of security reports.
+
+Available Reports:
+
+* Weekly SOC Report
+* Executive Summary
+* Vulnerability Report
+
+Designed to support both technical and non-technical stakeholders.
+
+---
+
+### 📜 Audit Logging
+
+Maintains a record of all security-related activities.
+
+Logged Actions Include:
+
+* Incident Creation
+* Incident Updates
+* IOC Management
+* Vulnerability Updates
+* Status Changes
+
+Purpose:
+
+* Accountability
+* Compliance
+* Forensics
+* Security Governance
+
+---
+
+## 🏗️ Technologies Used
+
+### Frontend
+
+* HTML5
+* CSS3
+* JavaScript (Vanilla JS)
+
+### Security Concepts Implemented
+
+* Security Operations Center (SOC)
+* Incident Response
+* Threat Intelligence
+* Vulnerability Management
+* MITRE ATT&CK Framework
+* SIEM Concepts
+* Detection Engineering
+* Security Monitoring
+* Audit Logging
+
+### Data Storage
+
+* Browser Local Storage
+
+---
+
+## 📚 Cybersecurity Concepts Demonstrated
+
+This project demonstrates understanding of:
+
+### Blue Team Operations
+
+* Incident Handling
+* Threat Monitoring
+* IOC Analysis
+* Security Investigations
+
+### Detection Engineering
+
+* Detection Rules
+* Alert Correlation
+* Event Analysis
+
+### Threat Intelligence
+
+* IOC Tracking
+* Threat Actor Attribution
+* Threat Feed Integration
+
+### Vulnerability Management
+
+* Risk Assessment
+* CVSS Scoring
+* Remediation Tracking
+
+### Security Frameworks
+
+* MITRE ATT&CK
+* Incident Response Lifecycle
+
+---
+
+## 🎯 Learning Objectives
+
+The project was developed to:
+
+* Apply cybersecurity concepts in a practical environment
+* Understand SOC workflows
+* Simulate SIEM operations
+* Improve incident response knowledge
+* Strengthen threat analysis skills
+* Demonstrate cybersecurity competencies to recruiters
+
+---
+
+## 🔮 Future Improvements
+
+Potential future enhancements include:
+
+* User Authentication & Role-Based Access Control
+* Real-Time Log Ingestion
+* Splunk/Sentinel Style Dashboards
+* Threat Hunting Module
+* Malware Analysis Section
+* Automated Incident Correlation
+* PDF Report Exporting
+* Threat Actor Intelligence Database
+* API Integrations
+* Cloud Security Monitoring
+
+---
+
+## 👨‍💻 Author
+
+richard lamy
+
+Final-Year Cybersecurity Student
+
+Passionate about:
+
+* Security Operations (SOC)
+* Blue Teaming
+* Threat Intelligence
+* Incident Response
+* Detection Engineering
+
+---
+
+## ⭐ Project Purpose
+
+This project was created as a portfolio piece to demonstrate practical cybersecurity knowledge and understanding of Security Operations Center workflows.
+
+While it is not intended to replace enterprise SIEM platforms, it showcases how security events can be monitored, investigated, classified, and managed within a SOC environment.
